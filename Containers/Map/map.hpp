@@ -13,11 +13,11 @@
 
 #include <string>
 
-#define RESET   "\033[0m"
-#define RED     "\033[31m"      /* Red */
-#define GREEN   "\033[32m"      /* Green */
-#define YELLOW  "\033[33m"      /* Yellow */
-#define BLUE    "\033[34m"      /* Blue */
+#define CRESET   "\033[0m"
+#define CRED     "\033[31m"      /* Red */
+#define CGREEN   "\033[32m"      /* Green */
+#define CYELLOW  "\033[33m"      /* Yellow */
+#define CBLUE    "\033[34m"      /* Blue */
 
 namespace ft
 {
@@ -54,6 +54,234 @@ class map{
 	key_compare		_compare;
 	allocator_type 	_alloc;
 
+
+	bool				findAuntColorFLip(node_pointer tmp)
+	{
+		node_pointer& GP = tmp->parent->parent;
+		if (GP->left != NULL && tmp->parent == GP->left){
+			if (GP->right && GP->right->color == RED)
+			{
+				std::cout << "COLORFLIP" << std::endl;
+				GP->right->color = BLACK;
+				GP->left->color = BLACK;
+				GP->color = RED;
+				return RED;
+			}
+			return BLACK;
+		}
+		if (GP->right != NULL && tmp->parent == GP->right){
+			if (GP->left && GP->left->color == RED)
+			{
+				std::cout << "COLORFLIP" << std::endl;
+				GP->right->color = BLACK;
+				GP->left->color = BLACK;
+				GP->color = RED;
+				return RED;
+			}
+			return BLACK;
+		}
+		return BLACK;
+	}
+
+	void				adjecentRedNodes(node_pointer tmp, node_pointer *tmp_check){
+		if (tmp == _last)
+			return ;
+		// std::cout << tmp->data.key << std::endl;
+		if (tmp->color == RED){
+			if (tmp->left != NULL && tmp->left->color == RED){
+				std::cout << "DOUBLE RED left side adjecent" << std::endl; 
+				(*tmp_check) = tmp->left;
+				return ;
+			}
+			if (tmp->right != NULL && tmp->right->color == RED){
+				std::cout << "DOUBLE RED right side adjecent" << std::endl; 
+				(*tmp_check) = tmp->right;
+				return ;
+			}
+		}
+		if (tmp->left != NULL && tmp->left != _first)
+			adjecentRedNodes(tmp->left, tmp_check);
+		if (tmp->right != NULL)
+			return adjecentRedNodes(tmp->right, tmp_check);
+	}
+
+	void				RightRotate(node_pointer child)
+	{
+		std::cout << "right_rotate" << std::endl;
+		node_pointer parent = child->parent;
+		node_pointer GP = parent->parent;
+
+		if (GP->parent != NULL){
+			if (GP == GP->parent->right)
+				GP->parent->right = parent;
+			else
+				GP->parent->left = parent;
+		}
+		if (parent->right != NULL){
+			GP->left = parent->right;
+			parent->right->parent = GP;
+		}
+		else 
+		{
+			GP->left = NULL;
+		}
+		parent->parent = GP->parent;
+		GP->parent = parent;
+		parent->right = GP;
+		if (_root == GP)
+			_root = parent;
+		parent->color = BLACK;
+		GP->color = RED;
+		child->color = RED;
+	}
+
+	void				LeftRotate(node_pointer child)
+	{
+		std::cout << "left_rotate" << std::endl;
+		node_pointer parent = child->parent;
+		node_pointer GP = parent->parent;
+
+		if (GP->parent != NULL){
+			if (GP == GP->parent->left)
+				GP->parent->left = parent;
+			else
+				GP->parent->right = parent;
+		}
+		if (parent->left != NULL){
+			GP->right = parent->left;
+			parent->left->parent = GP;
+		}
+		else 
+		{
+			GP->right = NULL;
+		}
+		parent->parent = GP->parent;
+		GP->parent = parent;
+		parent->left = GP;
+		if (_root == GP)
+			_root = parent;
+		parent->color = BLACK;
+		GP->color = RED;
+		child->color = RED;
+	}
+
+	void				LeftRightRotate(node_pointer child)
+	{
+		std::cout << "left->right rotate" << std::endl;
+		node_pointer parent = child->parent;
+		node_pointer GP = parent->parent;
+		print_tree();
+		if (GP->parent != NULL){
+			if (GP == GP->parent->right)
+				GP->parent->right = child;
+			else
+				GP->parent->left = child;
+			child->parent = GP->parent;
+		}
+		std::cout << "left->right rotate" << std::endl;
+		if (_root == GP)
+			_root = child;
+		if (child->right){
+			child->right->parent = GP;
+			GP->left = child->right;
+		}
+		else 
+			GP->left = NULL;
+		if (child->left){
+			child->left->parent = parent;
+			parent->right = child->left;
+		}
+		else 
+			parent->right = NULL;
+		// print_tree();
+
+		std::cout << "left->right rotate" << std::endl;
+		child->right = GP;
+		GP->parent = child;
+		child->left = parent;
+		parent->parent = child;
+		std::cout << "left->right rotate" << std::endl;
+		parent->color = RED;
+		GP->color = RED;
+		child->color = BLACK;
+		print_tree();
+
+	}
+
+	void				RightLeftRotate(node_pointer child)
+	{
+		std::cout << "right->left rotate" << std::endl;
+		node_pointer parent = child->parent;
+		node_pointer GP = parent->parent;
+
+		if (GP->parent != NULL){
+			if (GP == GP->parent->left)
+				GP->parent->left = child;
+			else
+				GP->parent->right = child;
+			child->parent = GP->parent;
+
+		}
+		if (_root == GP)
+			_root = child;
+		if (child->left){
+			child->left->parent = GP;
+			GP->right = child->left;
+		}
+		else 
+			GP->right = NULL;
+		if (child->right){
+			child->right->parent = parent;
+			parent->left = child->right;
+		}
+		else 
+			parent->left = NULL;
+		child->left = GP;
+		GP->parent = child;
+		child->right = parent;
+		parent->parent = child;
+		parent->color = RED;
+		GP->color = RED;
+		child->color = BLACK;
+	}
+
+	void				RBT_Rules(){
+		node_pointer tmp = _root;
+		node_pointer tmp_check = nullptr;
+		if (_root->color == RED)
+			_root->color = BLACK;
+		std::cout << "pre add" << std::endl;
+		adjecentRedNodes(tmp, &tmp_check);
+		if (tmp_check != nullptr)
+			std::cout << tmp_check->data.key << std::endl;
+		if (tmp_check != nullptr){
+			if (findAuntColorFLip(tmp_check) == BLACK){
+				// std::cout << "data: " << tmp_check->data.key << std::endl;
+				// std::cout << "data: " << tmp_check->parent->data.key << std::endl;
+				// std::cout << "data: " << tmp_check->parent->parent->data.key << std::endl;
+				// std::cout << "data: " << tmp_check->parent->parent->parent->data.key << std::endl;
+				print_tree();
+				if (tmp_check->parent->left != NULL && tmp_check == tmp_check->parent->left){
+					std::cout << "is left child" << std::endl;
+					if (tmp_check->parent->parent->left != NULL && tmp_check->parent == tmp_check->parent->parent->left)
+						RightRotate(tmp_check);
+					else 
+						RightLeftRotate(tmp_check);
+				}
+				else { 
+					std::cout << "is right child" << std::endl;
+					if (tmp_check->parent->parent->right != NULL && tmp_check->parent == tmp_check->parent->parent->right)
+						LeftRotate(tmp_check);
+					else
+						LeftRightRotate(tmp_check);
+				}
+			}
+			std::cout << "made it out " << std::endl;
+			RBT_Rules();
+		}
+	}		
+
+
   public:
 	//                  constructors
 	explicit map (const key_compare& compare = key_compare(), const allocator_type& alloc = allocator_type()){
@@ -72,6 +300,7 @@ class map{
 			node_pointer tmp = _root;
 			searchSpot(val, tmp);
 		}
+		RBT_Rules();
 		return val; // check dit even
 
 	};
@@ -80,7 +309,7 @@ class map{
 	{
 		node_pointer tmp = _root;
 
-		std::cout << "X";
+		std::cout << ".";
 		for (int i = 0; root_path[i]; ++i){
 			if (root_path[i] == 'L'){
 				if (tmp->left == NULL)
@@ -95,9 +324,9 @@ class map{
 		}
 		if (tmp->data.key){
 			if (tmp->color)
-				std::cout << RED << tmp->data.key << RESET;
+				std::cout << CRED << tmp->data.key << CRESET;
 			else 
-				std::cout << BLUE << tmp->data.key << RESET;
+				std::cout << CBLUE << tmp->data.key << CRESET;
 		}
 	}
 
@@ -106,9 +335,9 @@ class map{
 		std::string root_path;
 		int layer = 0;
 		root_path = "";
-		int starting_tabs = 10;
-		int starting_gap = 8;
-		while (layer < 4)
+		int starting_tabs = 32;
+		int starting_gap = 32;
+		while (layer < 6)
 		{
 			float nodes_in_layer = pow(2, layer);
 			// std::cout << "nodes in layer: " << nodes_in_layer << std::endl;
@@ -124,10 +353,10 @@ class map{
 			while (root_path.find('L') != std::string::npos){
 				if (root_path.find('R') == std::string::npos)
 					for (; tmp_tabs; --tmp_tabs)
-						std::cout << "       ";
+						std::cout << " ";
 				else 
 					for (int tmp_gap2 = tmp_gap * 2; tmp_gap2; --tmp_gap2)
-						std::cout << "       ";
+						std::cout << " ";
 				print_node(root_path);
 
 				// std::cout << root_path;
@@ -140,10 +369,10 @@ class map{
 			}
 			if (root_path.find('R') == std::string::npos)
 				for (; tmp_tabs; --tmp_tabs)
-					std::cout << "       ";
+					std::cout << " ";
 			else 
 				for (int tmp_gap2 = tmp_gap * 2; tmp_gap2; --tmp_gap2)
-					std::cout << "       ";
+					std::cout << " ";
 			print_node(root_path);
 			std::cout << std::endl << std::endl << std::endl;
 			layer++;
@@ -203,13 +432,13 @@ class map{
 
 	void                searchSpot(const value_type& val, node_pointer tmp)
 	{
-		std::cout << "key of val:" << val.key << "  key of node:" << tmp->data.key << std::endl;
+		// std::cout << "key of val:" << val.key << "  key of node:" << tmp->data.key << std::endl;
 		if (val.key == tmp->data.key){
 			std::cout << "Key already used" << std::endl;
 			return ;
 		}
 		else if (_compare(val.key, tmp->data.key)){
-			std::cout << "LEFT" << std::endl;
+			// std::cout << "LEFT" << std::endl;
 			if (tmp->left == this->_first)
 				return make_first(val, tmp);
 			if (tmp->left != NULL && tmp->left){
@@ -218,7 +447,7 @@ class map{
 			}
 			return make_left(val, tmp);
 		}
-		std::cout << "RIGHT" << std::endl;
+		// std::cout << "RIGHT" << std::endl;
 		if (tmp->right == this->_last)
 			return make_last(val, tmp);
 		if (tmp->right != NULL && tmp->right != this->_last){
