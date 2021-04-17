@@ -6,12 +6,14 @@
 /*   By: wester <wester@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2021/03/25 11:29:26 by wester        #+#    #+#                 */
-/*   Updated: 2021/03/25 11:30:12 by wester        ########   odam.nl         */
+/*   Updated: 2021/04/13 18:32:34 by wester        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef TRAITS_HPP
 #define TRAITS_HPP
+
+# include <string>
 
 namespace ft {
 

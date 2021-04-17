@@ -1,187 +1,182 @@
 #ifndef BiDirectionalIterator_HPP
 # define BiDirectionalIterator_HPP
 
-// # include <cstddef>
+# include <cstddef>
+# include <string>
 // # include "Node.hpp"
 
 namespace ft
 {
 
-template<typename T, typename node_pointer, typename reference_, typename pointer_>
+template<typename T, typename node, typename reference_, typename pointer_>
 class BiDirectionalIterator
 {
   public:
-    typedef std::bidirectional_iterator_tag         iterator_category;
-    typedef node_pointer                            *iterator_type;
-    typedef T                                       value_type;
-    typedef std::ptrdiff_t                          difference_type;
-    typedef pointer_                                pointer;
-    typedef reference_                              reference;
+	typedef std::bidirectional_iterator_tag         iterator_category;
+	typedef node*                                   iterator_type;
+	typedef T                                       value_type;
+	typedef std::ptrdiff_t                          difference_type;
+	typedef reference_                              reference;
+	typedef pointer_                                pointer;
 
   private:
-    node_pointer element;
+	iterator_type element;
 
   public:
 
-    BiDirectionalIterator(): element(nullptr)
-    {}
+	BiDirectionalIterator(): element(nullptr)
+	{}
 
-    explicit BiDirectionalIterator(node_pointer it) : element(it) 
-    {}
+	explicit BiDirectionalIterator(iterator_type it) : element(it) 
+	{}
 
-    BiDirectionalIterator(const BiDirectionalIterator& other)
-    {
-        this->element = other.element;
-    }
+	BiDirectionalIterator(const BiDirectionalIterator& other)
+	{
+		this->element = other.element;
+	}
 
-    BiDirectionalIterator&      operator=(const BiDirectionalIterator& other)
-    {
-        this->element = other.element;
-        return *this;
-    }
+	BiDirectionalIterator&      operator=(const BiDirectionalIterator& other)
+	{
+		this->element = other.element;
+		return *this;
+	}
 
-    reference       operator*()
-    {
-        return this->element->data;
-    }
+	~BiDirectionalIterator() {};
 
-    pointer         operator->()
-    {
-        return &(this->element->data);
-    }
+	reference       operator*() {return element->data;}
 
-    bool            operator==(const BiDirectionalIterator& other) const
-    {
-        if (*this->element == *other.element)
-            return true;
-        return false;
-    }
+	pointer         operator->() {return &element->data;}
 
-    bool            operator!=(const BiDirectionalIterator& other) const
-    {
-        if (*this->element == *other.element)
-            return false;
-        return true;
-    }
+	bool            operator==(const BiDirectionalIterator& other) const
+	{
+		if (this->element == other.element)
+			return true;
+		return false;
+	}
 
-    BiDirectionalIterator&       operator++()
-    {
-        this->element = this->element->getnext();
-        return (*this);
-    }
+	bool            operator!=(const BiDirectionalIterator& other) const
+	{
+		if (this->element == other.element)
+			return false;
+		return true;
+	}
 
-    BiDirectionalIterator       operator++(int)
-    {
-        BiDirectionalIterator tmp(*this);
-        this->element = this->element->getnext();
-        return (tmp);
-    }
+	BiDirectionalIterator&       operator++()
+	{
+		this->element = this->element->getnext();
+		return (*this);
+	}
 
-    BiDirectionalIterator&       operator--()
-    {
-        this->element = this->element->getprevious();
-        return (*this);
-    }
+	BiDirectionalIterator       operator++(int)
+	{
+		BiDirectionalIterator tmp(*this);
+		this->element = this->element->getnext();
+		return (tmp);
+	}
 
-    BiDirectionalIterator       operator--(int)
-    {
-        BiDirectionalIterator tmp(*this);
-        this->element = this->element->getprevious();
-        return (tmp);
-    }
+	BiDirectionalIterator&       operator--()
+	{
+		this->element = this->element->getprevious();
+		return (*this);
+	}
 
-    node_pointer                getNode(){return element;}
+	BiDirectionalIterator       operator--(int)
+	{
+		BiDirectionalIterator tmp(*this);
+		this->element = this->element->getprevious();
+		return (tmp);
+	}
 
-    // template<typename T2, typename Node2>
-    // friend bool operator== (const BiDirectionalIterator<T2, Node2, T2&, T2*>& lhs, const BiDirectionalIterator<T2, Node2, T2&, T2*>& rhs) {return (lhs._ptr == rhs._ptr);};
+	iterator_type                getNode(){return element;}
 
-    // template<typename T2, typename Node2>
-    // friend bool operator!= (const BiDirectionalIterator<T2, Node2, T2&, T2*>& lhs, const BiDirectionalIterator<T2, Node2, T2&, T2*>& rhs) {return !(lhs == rhs);;};
+	// template<typename T2, typename Node2>
+	// friend bool operator== (const BiDirectionalIterator<T2, Node2, T2&, T2*>& lhs, const BiDirectionalIterator<T2, Node2, T2&, T2*>& rhs) {return (lhs._ptr == rhs._ptr);};
+
+	// template<typename T2, typename Node2>
+	// friend bool operator!= (const BiDirectionalIterator<T2, Node2, T2&, T2*>& lhs, const BiDirectionalIterator<T2, Node2, T2&, T2*>& rhs) {return !(lhs == rhs);;};
 
 };
 
-template<typename T, typename node_pointer, typename reference_, typename pointer_>
+template<typename T, typename node, typename reference_, typename pointer_>
 class ReverseBiDirectionalIterator
 {
   public:
-    typedef std::bidirectional_iterator_tag         iterator_category;
-    typedef node_pointer                            *iterator_type;
-    typedef T                                       value_type;
-    typedef std::ptrdiff_t                          difference_type;
-    typedef pointer_                                pointer;
-    typedef reference_                              reference;
+	typedef std::bidirectional_iterator_tag         iterator_category;
+	typedef node*									iterator_type;
+	typedef T                                       value_type;
+	typedef std::ptrdiff_t                          difference_type;
+	typedef pointer_                                pointer;
+	typedef reference_                              reference;
 
   private:
-    node_pointer element;
+	iterator_type element;
 
   public:
 
-    ReverseBiDirectionalIterator(): element(nullptr)
-    {}
+	ReverseBiDirectionalIterator(): element(nullptr)
+	{}
 
-    explicit ReverseBiDirectionalIterator(node_pointer it) : element(it)
-    {}
+	explicit ReverseBiDirectionalIterator(iterator_type it) : element(it)
+	{}
 
-    ReverseBiDirectionalIterator(const ReverseBiDirectionalIterator& other)
-    {
-        this->element = other.element;
-    }
+	ReverseBiDirectionalIterator(const ReverseBiDirectionalIterator& other)
+	{
+		this->element = other.element;
+	}
 
-    ReverseBiDirectionalIterator&      operator=(const ReverseBiDirectionalIterator& other)
-    {
-        this->element = other.element;
-        return *this;
-    }
+	ReverseBiDirectionalIterator&      operator=(const ReverseBiDirectionalIterator& other)
+	{
+		this->element = other.element;
+		return *this;
+	}
 
-    reference       operator*()
-    {
-        return this->element->_data;
-    }
+	~ReverseBiDirectionalIterator() {};
 
-    pointer         operator->()
-    {
-        return &(this->element->_data);
-    }
+	reference       operator*() {return element->data;}
 
-    bool            operator==(const ReverseBiDirectionalIterator& other) const
-    {
-        if (*this->element == *other.element)
-            return true;
-        return false;
-    }
+	pointer         operator->() {return &element->data;}
 
-    bool            operator!=(const ReverseBiDirectionalIterator& other) const
-    {
-        if (*this->element == *other.element)
-            return false;
-        return true;
-    }
+	bool            operator==(const ReverseBiDirectionalIterator& other) const
+	{
+		if (*this->element == *other.element)
+			return true;
+		return false;
+	}
 
-    ReverseBiDirectionalIterator&       operator++()
-    {
-        this->element = this->element->getprevious();
-        return (*this);
-    }
+	bool            operator!=(const ReverseBiDirectionalIterator& other) const
+	{
+		if (this->element == other.element)
+			return false;
+		return true;
+	}
 
-    ReverseBiDirectionalIterator&       operator++(int)
-    {
-        ReverseBiDirectionalIterator tmp(*this);
-        this->element = this->element->getprevious();
-        return (tmp);
-    }
+	ReverseBiDirectionalIterator&       operator++()
+	{
+		this->element = this->element->getprevious();
+		return (*this);
+	}
 
-    ReverseBiDirectionalIterator&       operator--()
-    {
-        this->element = this->element->getnext();
-        return (*this);
-    }
+	ReverseBiDirectionalIterator       operator++(int)
+	{
+		ReverseBiDirectionalIterator tmp(*this);
+		this->element = this->element->getprevious();
+		return (tmp);
+	}
 
-    ReverseBiDirectionalIterator&       operator--(int)
-    {
-        ReverseBiDirectionalIterator tmp(*this);
-        this->element = this->element->getnext();
-        return (tmp);
-    }
+	ReverseBiDirectionalIterator&       operator--()
+	{
+		this->element = this->element->getnext();
+		return (*this);
+	}
+
+	ReverseBiDirectionalIterator&       operator--(int)
+	{
+		ReverseBiDirectionalIterator tmp(*this);
+		this->element = this->element->getnext();
+		return (tmp);
+	}
+
+	iterator_type                       getNode() {return element;}
 };
 }
 

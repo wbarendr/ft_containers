@@ -1,7 +1,7 @@
 #include "catch.hpp"
 
 #include <list>
-#include "../Containers/List/List.hpp"
+#include "list/list.hpp"
 
 TEST_CASE("List - Testing constructor 1")
 {
@@ -166,6 +166,7 @@ TEST_CASE("List - erase functions"){
     //     std::cout << "[" << *it3 << "]" << std::endl;
     // }
     REQUIRE(my_vec.size() == 4);
+    // system("leaks a.out | grep bytes");
 }
 
 TEST_CASE("List - swapper die swap swap"){
@@ -332,11 +333,11 @@ bool        hasMoreA(std::string first, std::string second){
     int count_first = 0;
     int count_second = 0;
 
-    for (int i = 0; i != first.size(); ++i){
+    for (size_t i = 0; i != first.size(); ++i){
         if (first[i] == 'A')
             count_first++;
     }
-    for (int i = 0; i != second.size(); ++i){
+    for (size_t i = 0; i != second.size(); ++i){
         if (second[i] == 'A')
             count_second++;
     }

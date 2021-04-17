@@ -6,7 +6,7 @@
 /*   By: wester <wester@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2021/04/09 11:42:25 by wester        #+#    #+#                 */
-/*   Updated: 2021/04/10 12:19:32 by wester        ########   odam.nl         */
+/*   Updated: 2021/04/15 22:41:14 by wester        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 
 # include <algorithm>
 # include <cstddef>
+# include <iostream>
 
 enum color{
 	BLACK = 0,
@@ -33,7 +34,7 @@ class mapNode
 		mapNode*        left;
 		mapNode*        right;
 		mapNode*        parent;
-		bool						color;
+		bool			color;
 	
 		explicit mapNode(): data(), left(nullptr), right(nullptr), parent(nullptr), color(BLACK)
 		{};
@@ -47,29 +48,46 @@ class mapNode
 				this->left = other.left;
 				this->right = other.right;
 				this->parent = other.parent;
+				this->color = other.color;
 				return *this;
 		}
 
 		~mapNode(){};
 
-		bool        operator==(const mapNode& other) const{
-				if (this->data == other.data && this->left == other.left && this->right == other.right && this->parent == other.parent)
-						return true;
-				return false;
-		}
-		bool        operator!=(const mapNode& other) const{
-				return (!(*this == other));
-		}
-
-		mapNode*    next() {
-			
-				return this->next; 
-		}
+		// bool        operator==(const mapNode& other) const{
+		// 	if (this->data == other.data && this->left == other.left && this->right == other.right && this->parent == other.parent)
+		// 		return true;
+		// 	return false;
+		// }
+		// bool        operator!=(const mapNode& other) const{
+		// 	return (!(*this == other));
+		// }
 		
-		mapNode*   	prev() {
-			
-				return this->prev;
-		}
+		mapNode*   getnext() {
+			mapNode* tmp = this;
+			if (right == NULL){
+				while (tmp->parent != NULL && tmp == tmp->parent->right)
+					tmp = tmp->parent;
+				return tmp->parent;
+			}
+			tmp = tmp->right;
+			while (tmp->left != NULL)
+				tmp = tmp->left;
+			return tmp; 
+		};
+		
+    	mapNode*   getprevious() {
+			mapNode* tmp = this;
+			if (left == NULL){
+				while (tmp->parent != NULL && tmp == tmp->parent->left)
+					tmp = tmp->parent;
+				return tmp->parent;
+			}
+			tmp = tmp->left;
+			while (tmp->right != NULL)
+				tmp = tmp->right;
+			return tmp; 
+		};
 };
 }
 

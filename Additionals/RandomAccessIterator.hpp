@@ -2,6 +2,8 @@
 # define RANDOMACCESSITERATOR_HPP
 
 # include <cstddef>
+# include <string>
+
 
 template<typename T, typename reference, typename pointer>
 class RandomAccessIterator

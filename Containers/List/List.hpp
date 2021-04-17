@@ -6,7 +6,7 @@
 /*   By: wester <wester@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2021/04/02 22:06:55 by wester        #+#    #+#                 */
-/*   Updated: 2021/04/06 16:30:30 by wester        ########   odam.nl         */
+/*   Updated: 2021/04/14 14:48:56 by wester        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@
 
 # include <algorithm>
 # include "Node.hpp"
-# include "BiDirectionalIterator.hpp"
+# include "../../Additionals/BiDirectionalIterator.hpp"
 # include "../../Additionals/Traits.hpp"
 
 namespace ft {
@@ -41,10 +41,10 @@ class list
 	typedef node<value_type> 	node;
 	typedef node*				node_pointer;
 	
-	typedef BiDirectionalIterator<value_type, node_pointer, reference, pointer> iterator;
-	typedef BiDirectionalIterator<value_type, node_pointer, const_reference, const_pointer> const_iterator;
-	typedef ReverseBiDirectionalIterator<value_type, node_pointer, reference, pointer> reverse_iterator;
-	typedef ReverseBiDirectionalIterator<value_type, node_pointer, const_reference, const_pointer> const_reverse_iterator;
+	typedef BiDirectionalIterator<value_type, node, reference, pointer> iterator;
+	typedef BiDirectionalIterator<value_type, node, const_reference, const_pointer> const_iterator;
+	typedef ReverseBiDirectionalIterator<value_type, node, reference, pointer> reverse_iterator;
+	typedef ReverseBiDirectionalIterator<value_type, node, const_reference, const_pointer> const_reverse_iterator;
 
   private:
 	node_pointer		_head;
@@ -154,8 +154,7 @@ class list
 
 	void 		push_front(const value_type& val){
 		node *new_node = new node(val);
-		
-		// new_node->data = val;
+
 		new_node->next = _head->next;
 		new_node->prev = _head;
 		new_node->next->prev = new_node;
@@ -427,8 +426,8 @@ class list
   	bool 		operator==(const list<T,Alloc>& lhs, const list<T,Alloc>& rhs){
 		if (lhs.size() != rhs.size())
 			return false;
-		BiDirectionalIterator<T, node<T>*, const T&, const T*> lhs_begin = lhs.begin();
-		BiDirectionalIterator<T, node<T>*, const T&, const T*> rhs_begin = rhs.begin();
+		BiDirectionalIterator<T, node<T>, const T&, const T*> lhs_begin = lhs.begin();
+		BiDirectionalIterator<T, node<T>, const T&, const T*> rhs_begin = rhs.begin();
 		while (lhs_begin != lhs.end()){
 			if (*lhs_begin != *rhs_begin)
 				return false;
@@ -465,7 +464,7 @@ class list
 	
 	template <class T, class Alloc>
 	void 		swap(list<T,Alloc>& x, list<T,Alloc>& y){
-		BiDirectionalIterator<T, node<T>*, T&, T*> xbegin = x.begin();
+		BiDirectionalIterator<T, node<T>, T&, T*> xbegin = x.begin();
 		
 		x.splice(xbegin, y);
 		y.splice(y.begin(), x, xbegin, x.end());
