@@ -156,7 +156,6 @@ class map{
         }
     }
 
-
 	iterator						find(const key_type& k){
 		node_pointer tmp = _root;
 		while (tmp != _first && tmp != _last){
@@ -210,20 +209,50 @@ class map{
 
 	void 					erase(iterator first, iterator last)
 	{
-		map tmp(first, last);
-		for (iterator it = tmp.begin(); it != tmp.end(); ++it)
-			erase(it->first);
+		for (;first != last; ++first) // this needs to be modified!!! 
+			erase(first);
+	}
+
+	void 					erase(typename enable_if<is_input_iterator<iterator>::value, iterator>::type position)
+	{
+		node_pointer old = position.getNode();
+		if (!old || old == _last || old == _first)
+			return ;
+		node_pointer replace = NULL;
+		node_pointer p = NULL;
+		node_pointer x = NULL;
+		node_pointer w = NULL;
+		bool x_is_left = false;
+		bool old_col = old->color; // save color of [to be erased]
+		bool replace_col = BLACK;
+
+		x = step1(old, &replace);
+		w = step2(replace, old, p, &replace_col); // save color of [replacing node]
+		if (splice(replace, x, old))
+			x_is_left = true;
+		replace_func(old, replace);
+		if (old_col == RED && replace_col == RED){
+			if (replace)
+				replace->color = RED;
+		}
+		else if (old_col == BLACK && replace_col == RED){
+			replace->color = BLACK;
+		}
+		else {
+			if (old_col == RED && replace_col == BLACK && replace)
+				replace->color = RED;
+			step3(x, w, p, x_is_left);
+		}
+		std::cout << "MADE IT OUT ERASE ALIVE! :)" << std::endl;
 	}
 
 	void 					swap(map& other){
-		map tmp;
-
-		tmp._root = other._root;
-		tmp._first = other._first;
-		tmp._last = other._last;
-		tmp._alloc = other._alloc;
-		tmp._compare = other._compare;
-		tmp._size = other._size;
+		node_pointer 	tmp_root  = other._root;
+		node_pointer 	tmp_first = other._first;
+		node_pointer 	tmp_last = other._last;
+		size_type		tmp_size = other._size;
+		key_compare		tmp_compare = other._compare;
+		allocator_type 	tmp_alloc = other._alloc;
 
 		other._root = this->_root;
 		other._first = this->_first;
@@ -232,56 +261,115 @@ class map{
 		other._compare = this->_compare;
 		other._size = this->_size;
 
-		this->_root = tmp._root;
-		this->_first = tmp._first;
-		this->_last = tmp._last; 
-		this->_alloc = tmp._alloc;
-		this->_compare = tmp._compare;
-		this->_size = tmp._size;
+		this->_root = tmp_root;
+		this->_first = tmp_first;
+		this->_last = tmp_last; 
+		this->_alloc = tmp_alloc;
+		this->_compare = tmp_compare;
+		this->_size = tmp_size;
 	}
 
-	void							set_first(){
-		node_pointer tmp = _root;
-
-		while (tmp->left != NULL && tmp->left != _first)
-			tmp = tmp->left;
-		_first->parent = tmp;
-		tmp->left = _first;
+	void					clear()
+	{
+		deleteAll(_root);
+		_size = 0;
+		make_tree();
 	}
 
-	void							set_last(){
-		node_pointer tmp = _root;
-
-		while (tmp->right != NULL && tmp->right != _last)
-			tmp = tmp->right;
-		_last->parent = tmp;
-		tmp->right = _last;
-	}
-
+  private:
 	node_pointer					step1(node_pointer old, node_pointer* replace){
 		std::cout << "STEP 1" << std::endl;
-		std::cout << "wie ben ik: " << old->data.first << std::endl; 
+		std::cout << "key to be erases= " << old->data.first << std::endl; 
 		if ((old->right == NULL || old->right == _last) && (old->left == NULL || old->left == _first)){
 			*replace = NULL;
-			std::cout << "both NULL" << std::endl;
 			return NULL;
 		}
 		if (old->right == NULL || old->right == _last){
 			*replace = old->left;
-			std::cout << "getal:"<< old->left->data.first << std::endl;
-			std::cout << "left NULL" << std::endl;
 			return old->left;
 		}
 		if (old->left == NULL || old->left == _first){
 			*replace = old->right;
-			std::cout << "getal:"<< old->right->data.first << std::endl;
-			std::cout << "right NULL" << std::endl;
 			return old->right;
 		}
 		*replace = old->right;
 		while ((*replace)->left != NULL && (*replace)->left != _first)
 			(*replace) = (*replace)->left;
 		return (*replace)->right;
+	}
+	
+	node_pointer			step2(node_pointer replace, node_pointer old, node_pointer p, bool *replace_col)
+	{
+		if (replace != NULL){
+			p = replace; //setting the parent which will be needed in the case that x and sibling will result to null
+			*replace_col = replace->color; //setting the color of replace only if it exists
+			if (replace->parent && replace->parent->right == replace){
+				if (replace == old->right)
+					return old->left;
+				else 
+					return replace->parent->left;
+			}
+			else if (replace->parent && replace->parent->left == replace){
+				if (replace == old->right)
+					return old->left;
+				else 
+					return replace->parent->right; // making w the sibling of x
+			}
+		}
+		else {
+			*replace_col = BLACK;
+			if (old->parent){
+				if (old == old->parent->left)
+					return old->parent->right;
+				else if (old == old->parent->right)
+					return old->parent->left;
+			}
+		}
+		return NULL;
+	}
+
+	void					step3(node_pointer x, node_pointer w, node_pointer p, bool x_is_left)
+	{
+		std::cout << "STEP 3 !" << std::endl;
+		bool w_left_col = BLACK;
+		bool w_right_col = BLACK;
+		bool w_col = BLACK;
+		bool x_col = BLACK;
+
+		if (x && x->color == RED)// getting all colors of x w and children
+			x_col = RED;
+		if (w && w->color == RED)
+			w_col = RED;
+		if (w && w->left && w->left->color == RED)
+			w_left_col = RED;
+		if (w && w->right && w->right->color == RED)
+			w_right_col = RED;
+
+		// if (x_is_left)
+		// 	std::cout << "X = LEFT !" << std::endl;
+		// if (w_left_col == RED)
+		// 	std::cout << "left of W = RED" << std::endl;
+		// else 
+		// 	std::cout << "left of W = BLACK" << std::endl;
+		// if (w_right_col == RED)
+		// 	std::cout << "right of W = RED" << std::endl;
+		// else 
+		// 	std::cout << "right of W = BLACK" << std::endl;
+		// std::cout << "going to cases !" << std::endl;
+		
+		if (x_col == RED) // if x = RED
+			case_0(x);
+		else if (x_col == BLACK)
+		{
+			if (w_col == RED) // if x = black and w = red
+				case_1(x, w, p, x_is_left);
+			else if (w_left_col == BLACK && w_right_col == BLACK)
+				case_2(x, w, p);
+			else if ((x_is_left && w_left_col == RED && w_right_col == BLACK) || (!x_is_left && w_right_col == RED && w_left_col == BLACK))
+				case_3(x, w, x_is_left);
+			else if ((x_is_left && w_right_col == RED) || (!x_is_left && w_left_col == RED))
+				case_4(x, w, x_is_left);
+		}
 	}
 
 	bool							splice(node_pointer replace, node_pointer x, node_pointer old) // maak dit weer een void
@@ -335,21 +423,22 @@ class map{
 		--_size;
 	}
 
-	void					deleteAll(node_pointer tmp)
-	{
-		if (tmp->right)
-			deleteAll(tmp->right);
-		if (tmp->left)
-			deleteAll(tmp->left);
-		delete tmp;
+	void							set_first(){
+		node_pointer tmp = _root;
+
+		while (tmp->left != NULL && tmp->left != _first)
+			tmp = tmp->left;
+		_first->parent = tmp;
+		tmp->left = _first;
 	}
 
+	void							set_last(){
+		node_pointer tmp = _root;
 
-	void					clear()
-	{
-		deleteAll(_root);
-		_size = 0;
-		make_tree();
+		while (tmp->right != NULL && tmp->right != _last)
+			tmp = tmp->right;
+		_last->parent = tmp;
+		tmp->right = _last;
 	}
 
 	void					case_0(node_pointer x)
@@ -447,121 +536,13 @@ class map{
 		}
 	}
 
-	void					manipulate(iterator x)
+	void					deleteAll(node_pointer tmp)
 	{
-		node_pointer tmp = x.getNode();
-
-		tmp->color = RED;
-		tmp->left->color = BLACK;
-		tmp->right->color = BLACK;
-	}
-
-	void					step3(node_pointer x, node_pointer w, node_pointer p, bool x_is_left)
-	{
-		std::cout << "STEP 3 !" << std::endl;
-		bool w_left_col = BLACK;
-		bool w_right_col = BLACK;
-		bool w_col = BLACK;
-		bool x_col = BLACK;
-
-		if (x && x->color == RED)// getting all colors of x w and children
-			x_col = RED;
-		if (w && w->color == RED)
-			w_col = RED;
-		if (w && w->left && w->left->color == RED)
-			w_left_col = RED;
-		if (w && w->right && w->right->color == RED)
-			w_right_col = RED;
-
-		// if (x_is_left)
-		// 	std::cout << "X = LEFT !" << std::endl;
-		// if (w_left_col == RED)
-		// 	std::cout << "left of W = RED" << std::endl;
-		// else 
-		// 	std::cout << "left of W = BLACK" << std::endl;
-		// if (w_right_col == RED)
-		// 	std::cout << "right of W = RED" << std::endl;
-		// else 
-		// 	std::cout << "right of W = BLACK" << std::endl;
-		// std::cout << "going to cases !" << std::endl;
-		
-		if (x_col == RED) // if x = RED
-			case_0(x);
-		else if (x_col == BLACK)
-		{
-			if (w_col == RED) // if x = black and w = red
-				case_1(x, w, p, x_is_left);
-			else if (w_left_col == BLACK && w_right_col == BLACK)
-				case_2(x, w, p);
-			else if ((x_is_left && w_left_col == RED && w_right_col == BLACK) || (!x_is_left && w_right_col == RED && w_left_col == BLACK))
-				case_3(x, w, x_is_left);
-			else if ((x_is_left && w_right_col == RED) || (!x_is_left && w_left_col == RED))
-				case_4(x, w, x_is_left);
-		}
-	}
-
-	void 					erase(typename enable_if<is_input_iterator<iterator>::value, iterator>::type position)
-	{
-		node_pointer old = position.getNode();
-		if (!old || old == _last || old == _first)
-			return ;
-		node_pointer replace = NULL;
-		node_pointer p = NULL;
-		node_pointer x = NULL;
-		node_pointer w = NULL;
-		bool x_is_left = false;
-
-		if (old == NULL)
-			return ;
-		bool old_col = old->color; // save color of [to be erased]
-		bool replace_col; // save color of [to be erased]
-
-		x = step1(old, &replace);
-
-		if (replace != NULL){
-			replace_col = replace->color;
-			if (replace->parent && replace->parent->right == replace){
-				if (replace == old->right)
-					w = old->left;
-				else 
-					w = replace->parent->left;
-			}
-			else if (replace->parent && replace->parent->left == replace){
-				if (replace == old->right)
-					w = old->left;
-				else 
-					w = replace->parent->right; // making w the sibling of x
-			}
-			p = replace;
-		}
-		else {
-			replace_col = BLACK; // dit moet BLACK zijn eigenlijk. 
-			if (old->parent){
-				if (old == old->parent->left)
-					w = old->parent->right;
-				else if (old == old->parent->right)
-					w = old->parent->left;
-			}
-		}
-		if (splice(replace, x, old))
-			x_is_left = true;
-		replace_func(old, replace);
-		if (old_col == RED && replace_col == RED){
-			std::cout << "RED RED" << std::endl;
-			if (replace)
-				replace->color = RED;
-		}	
-		else if (old_col == BLACK && replace_col == RED){
-			std::cout << "BLACK RED" << std::endl;
-			replace->color = BLACK;
-		}
-		else {
-			if (old_col == RED && replace_col == BLACK && replace){
-				replace->color = RED; // deze twee regels zijn niet nodig
-			}
-			step3(x, w, p, x_is_left);
-		}
-		std::cout << "MADE IT OUT ERASE ALIVE! :)" << std::endl;
+		if (tmp->right)
+			deleteAll(tmp->right);
+		if (tmp->left)
+			deleteAll(tmp->left);
+		delete tmp;
 	}
 
 	void				print_node(std::string root_path)
@@ -589,6 +570,7 @@ class map{
 		}
 	}
 
+  public: //this should be deleted so print_tree() isn't public
 	void				print_tree()
 	{
 		std::string root_path;
@@ -634,7 +616,16 @@ class map{
 		}
 	}
 
-  private: // don't forget to make the printing function private
+	void					manipulate(iterator x)
+	{
+		node_pointer tmp = x.getNode();
+
+		tmp->color = RED;
+		tmp->left->color = BLACK;
+		tmp->right->color = BLACK;
+	}
+
+  private:  // INSERTING AND ROTATING
 	bool				findAuntColorFLip(node_pointer tmp)
 	{
 		node_pointer& GP = tmp->parent->parent;
@@ -685,15 +676,10 @@ class map{
 	}
 
 	// ROTATERS
-	void				reColor(node_pointer child, node_pointer parent, node_pointer GP)
-	{
-			parent->color = BLACK;
-			GP->color = RED;
-			child->color = RED;
-	}
 
 	void				RightRotate(node_pointer parent, node_pointer GP)
 	{
+		std::cout << "right rotate" << std::endl;
 		if (GP->parent != NULL){
 			if (GP == GP->parent->right)
 				GP->parent->right = parent;
@@ -717,6 +703,7 @@ class map{
 
 	void				LeftRotate(node_pointer parent, node_pointer GP)
 	{
+		std::cout << "left rotate" << std::endl;
 		if (GP->parent != NULL){
 			if (GP == GP->parent->left)
 				GP->parent->left = parent;
@@ -814,6 +801,13 @@ class map{
 		child->color = BLACK;
 	}
 
+	void				reColor(node_pointer child, node_pointer parent, node_pointer GP)
+	{
+		parent->color = BLACK;
+		GP->color = RED;
+		child->color = RED;
+	}
+
 	void				RBT_Rules(){
 		node_pointer tmp = _root;
 		node_pointer tmp_check = nullptr;
@@ -828,7 +822,7 @@ class map{
 					// std::cout << "is left child" << std::endl;
 					if (tmp_check->parent->parent->left != NULL && tmp_check->parent == tmp_check->parent->parent->left){
 						RightRotate(tmp_check->parent, tmp_check->parent->parent);
-						reColor(tmp_check, tmp->parent, tmp->parent->right);
+						reColor(tmp_check, tmp_check->parent, tmp_check->parent->right);
 					}
 					else 
 						RightLeftRotate(tmp_check);
@@ -837,7 +831,7 @@ class map{
 					// std::cout << "is right child" << std::endl;
 					if (tmp_check->parent->parent->right != NULL && tmp_check->parent == tmp_check->parent->parent->right){
 						LeftRotate(tmp_check->parent, tmp_check->parent->parent);
-						reColor(tmp_check, tmp->parent, tmp->parent->left);
+						reColor(tmp_check, tmp_check->parent, tmp_check->parent->left);
 					}
 					else
 						LeftRightRotate(tmp_check);
