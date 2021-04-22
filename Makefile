@@ -6,7 +6,7 @@
 #    By: wester <wester@student.codam.nl>             +#+                      #
 #                                                    +#+                       #
 #    Created: 2021/04/13 18:07:51 by wester        #+#    #+#                  #
-#    Updated: 2021/04/22 16:46:30 by wester        ########   odam.nl          #
+#    Updated: 2021/04/22 18:04:05 by wester        ########   odam.nl          #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,7 +16,7 @@ NAME2 = map
 NAME3 = stack
 NAME4 = queue
 NAME5 = testall
-NAME6 = all
+NAME6 = tester
 
 RED = "\033[0;31m"
 GREEN = "\033[0;32m"
@@ -24,59 +24,63 @@ YELLOW = "\033[0;33m"
 BLUE = "\033[0;34m"
 END = "\033[0m"
 
-UTILS 	=	Traits RandomAccessIterator BiDirectionalIterator
-CATCH 	=	catch main vector_catch list_catch map_catch stack_catch queue_catch
-CATCHO 	=	catch.o main.o
-MAP 	=	map mapnode pair
-LIST	=	List Node
-VECTOR	= 	Vector
-STACK	= 	Stack
-QUEUE	=	Queue
+UTILS 		=	Traits RandomAccessIterator BiDirectionalIterator
+CATCHTEST 	=	vector_catch list_catch map_catch stack_catch queue_catch
+CATCH 		=	catch main
+MAP 		=	map mapnode pair
+LIST		=	List Node
+VECTOR		= 	Vector
+STACK		= 	Stack
+QUEUE		=	Queue
 
 CC 		= clang++
 FLAGS 	= -Wall -Werror -Wextra --std=c++98
 FLAGS2	= -Wall -Werror -Wextra --std=c++14
 
-UTILS1  = $(UTILS:%=%.hpp)
-CATCH1  = $(CATCH:%=%.cpp)
-CATCHOO  = $(CATCH:%=%.o)
-MAP1  = $(MAP:%=%.hpp)
-LIST1  = $(LIST:%=%.hpp)
-VECTOR1  = $(VECTOR:%=%.hpp)
-STACK1  = $(STACK:%=%.hpp)
-QUEUE1  = $(QUEUE:%=%.hpp)
+UTILS1  	= $(UTILS:%=%.hpp)
+CATCH1  	= $(CATCH:%=%.cpp)
+CATCHO		= $(CATCH:%=%.o)
+CATCHTEST1  = $(CATCHTEST:%=%.cpp)
+CATCHTESTO  = $(CATCHTEST:%=%.o)
+MAP1  		= $(MAP:%=%.hpp)
+LIST1  		= $(LIST:%=%.hpp)
+VECTOR1  	= $(VECTOR:%=%.hpp)
+STACK1  	= $(STACK:%=%.hpp)
+QUEUE1  	= $(QUEUE:%=%.hpp)
 
-UTILS2 = $(addprefix Additionals/,$(UTILS1))
-CATCH2 = $(addprefix catch2/,$(CATCH1))
-MAP2 = $(addprefix Containers/Map/,$(MAP1))
-LIST2 = $(addprefix Containers/List/,$(LIST1))
-VECTOR2 = $(addprefix Containers/Vector/,$(VECTOR1))
-STACK2 = $(addprefix Containers/Stack/,$(STACK1))
-QUEUE2 = $(addprefix Containers/Queue/,$(QUEUE1))
+UTILS2 		= $(addprefix Additionals/,$(UTILS1))
+CATCH2 		= $(addprefix catch2/,$(CATCH1))
+CATCHTEST2 	= $(addprefix catch2/,$(CATCHTEST1))
+MAP2 		= $(addprefix Containers/Map/,$(MAP1))
+LIST2 		= $(addprefix Containers/List/,$(LIST1))
+VECTOR2 	= $(addprefix Containers/Vector/,$(VECTOR1))
+STACK2 		= $(addprefix Containers/Stack/,$(STACK1))
+QUEUE2 		= $(addprefix Containers/Queue/,$(QUEUE1))
 
 all:$(NAME6)
 
 $(NAME6):
-	$(CC) $(FLAGS2) $(CATCH2) -o $(NAME6)
+	$(CC) $(FLAGS) EVAL/main.cpp -o $(NAME6)
 	
 runall: alltest $(NAME5)
 	@./$(NAME5)
 
 $(NAME5):
-	@$(CC) $(FLAGS2) $(CATCHOO) -o $(NAME5)
+	@$(CC) $(FLAGS2) $(CATCHO) $(CATCHTESTO) -o $(NAME5)
 
 alltest: catch vector list map stack queue
 
 vector: catch $(NAME)
 
 $(NAME):
-	@$(CC) $(FLAGS2) $(CATCH2) vector_catch.o -o $(NAME)
+	@$(CC) $(FLAGS2) $(CATCHO) vector_catch.o -o $(NAME)
 	@echo $(GREEN) COMPILED VECTOR $(END)
 
 catch: $(CATCHO)
+	@rm -f catch
 
 $(CATCHO):
-	@$(CC) $(FLAGS2) $(CATCH2) -c
+	$(CC) $(FLAGS2) $(CATCH2) $(CATCHTEST2) -c
 	@echo $(GREEN) COMPILED CATCH2 $(END)
 
 list: catch $(NAME1)
@@ -110,7 +114,7 @@ tim:
 	@$(CC) $(FLAGS2) $(CATCH2) $(UTILS2) $(LIST2) TEST/stack_test.cpp
 	
 clean:
-	@rm -f $(CATCHOO) catch
+	@rm -f $(CATCHTESTO) $(CATCHO)
 	@echo $(YELLOW) CLEANED $(END)
 	
 
