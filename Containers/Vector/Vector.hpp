@@ -6,7 +6,7 @@
 /*   By: wester <wester@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2021/01/21 15:47:54 by wester        #+#    #+#                 */
-/*   Updated: 2021/03/25 13:01:45 by wester        ########   odam.nl         */
+/*   Updated: 2021/04/22 11:54:58 by wester        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,10 +35,10 @@ class vector
 	typedef		ptrdiff_t			difference_type;
 	typedef		size_t				size_type;
 	
-	typedef		RandomAccessIterator<value_type, reference, pointer> iterator;
-	typedef		RandomAccessIterator<value_type, const_reference, const_pointer> const_iterator;
-	typedef		ReverseRandomAccessIterator<value_type, reference, pointer> reverse_iterator;
-	typedef		ReverseRandomAccessIterator<value_type, const_reference, const_pointer> const_reverse_iterator;
+	typedef		RandomAccessIterator<value_type> iterator;
+	typedef		ConstRandomAccessIterator<value_type> const_iterator;
+	typedef		ReverseRandomAccessIterator<value_type> reverse_iterator;
+	typedef		ConstReverseRandomAccessIterator<value_type> const_reverse_iterator;
 	
   private:
 
@@ -53,7 +53,6 @@ class vector
 
 		if (newCapacity < this->_size)
 			this->_size = newCapacity;
-
 		for (size_t i = 0; i < this->_size; ++i)
 			newBlock[i] = _data[i];
 
@@ -69,10 +68,12 @@ class vector
 		if (newCapacity < _size)
 			_size = newCapacity;
 
-		for (size_t i = 0; i < _size; ++i)
+		size_t i = 0;
+		for (; i < _size; ++i)
 			newBlock[i] = _data[i];
 		newBlock[this->_size] = val;
-		delete[] _data;
+		clear();
+		_size = i;
 		_data = newBlock;
 		_capacity = newCapacity;
 
@@ -81,7 +82,6 @@ class vector
 	size_type	distance(iterator first, iterator last)
 	{
 		size_type count = 0;
-		
 		while (first + count != last)
 			count++;
 		return count;
@@ -95,45 +95,27 @@ class vector
 		return true;
 	}
 	
-	// template <class InputIterator>
-	// bool		check_same(InputIterator first, InputIterator last)
-	// {
-	// 	for (value_type val = *first; first != val.end() + 1; ++first)
-	// 		if (first == last)
-	// 			return true;
-	// 	return false;			
-	// }
-	
   public:
   	explicit vector(const allocator_type& alloc = allocator_type())
   	{
-		this->_alloc = alloc;
 		this->_size = 0;
 	 	this->_capacity = 0;
+		this->_alloc = alloc;
 		this->_data = nullptr;
   	}
 
-	// vector (typename enable_if<is_input_iterator<InputIterator>::value, InputIterator>::type first, InputIterator last,
-    //             const allocator_type& alloc = allocator_type()) : _allocator(alloc), _used(0), _capacity(0) {
 
-	template <class InputIterator>
-	vector(typename enable_if<is_input_iterator<InputIterator>::value, InputIterator>::type first, 
-			InputIterator last, const allocator_type& alloc = allocator_type())
-	{
-		this->_size = 0;
-		this->_capacity = 0;
-		this->_alloc = alloc;
-		// if (check_same(first, last))
-		// {
+ 	template <class InputIterator>
+    vector(typename enable_if<is_input_iterator<InputIterator>::value, InputIterator>::type first, InputIterator last,
+            const allocator_type& alloc = allocator_type()) : _size(0), _capacity(0), _alloc(alloc) {
 		this->assign(first, last);
-		// }
 	}
 	
 	explicit vector(size_type n, const value_type &val = value_type(), 
 		const allocator_type& alloc = allocator_type())
 	{
-		this->_size = 0;
 		this->_data = new value_type[n];
+		this->_size = 0;
 		this->_capacity = n;
 		this->_alloc = alloc;
 		this->assign(n, val); 
@@ -144,7 +126,7 @@ class vector
 		this->_capacity = other._size;
 		this->_size = 0;
 		this->_alloc = other._alloc;
-		this->assign(other.cbegin(), other.cend());
+		this->assign(other.begin(), other.end());
 	}
 
 	vector&		operator=(const vector& other){
@@ -153,7 +135,7 @@ class vector
 		this->_capacity = other._capacity;
 		this->_size = 0;
 		this->_alloc = other._alloc;
-		this->assign(other.cbegin(), other.cend());
+		this->assign(other.begin(), other.end());
 		return *this;
 	}
 
@@ -162,37 +144,15 @@ class vector
 		delete[] this->_data;
 	}
 
-	iterator	begin(){
-		return iterator(this->_data);
-	}
+	iterator				begin()				{return iterator(_data);}
+	const_iterator			begin() 	const	{return const_iterator(_data);}
+	iterator				end()				{return iterator(&_data[_size]);}
+	const_iterator			end() 		const	{return const_iterator(&_data[_size]);}
+	reverse_iterator		rbegin()			{return reverse_iterator(&_data[_size - 1]);}
+	const_reverse_iterator	rbegin()	const	{return const_reverse_iterator(&_data[_size - 1]);}
+	reverse_iterator		rend()				{return reverse_iterator(_data -1);}
+	const_reverse_iterator	rend()		const	{return const_reverse_iterator(_data - 1);}
 
-	iterator	end(){
-		return iterator(&(this->_data[this->_size]));
-	}
-
-	reverse_iterator	rbegin(){
-		return reverse_iterator(this->_data - 1);
-	}
-
-	reverse_iterator	rend(){
-		return reverse_iterator(&(this->_data[this->_size - 1]));
-	}
-
-	const_iterator	cbegin() const {
-		return const_iterator(this->_data);
-	}
-
-	const_iterator	cend() const {
-		return const_iterator(&(this->_data[this->_size]));
-	}
-
-	const_reverse_iterator	crbegin() const {
-		return const_reverse_iterator(this->_data - 1);
-	}
-
-	const_reverse_iterator	crend() const {
-		return const_reverse_iterator(&(this->_data[this->_size - 1]));
-	}
 
 	size_type		size() const { return _size; }
 
@@ -249,21 +209,20 @@ class vector
 	const_reference 	back() const { return this->_data[this->_size - 1]; }
 	
 	template <class InputIterator>
-	void	assign(typename enable_if<is_input_iterator<InputIterator>::value, InputIterator>::type first, InputIterator last)
-	{
+        void assign (typename enable_if<is_input_iterator<InputIterator>::value, InputIterator>::type first, InputIterator last) {
 		this->clear();
 		for (; first != last; ++first)
 			this->push_back(*first);
 	}
 	
-	void	assign(size_type n, const value_type &val)
+	void		assign(size_type n, const value_type &val)
 	{
 		this->clear();
 		for (size_type i = 0; i < n; ++i)
 			this->push_back(val);
 	}
   
-	void	push_back(const value_type& val)
+	void		push_back(const value_type& val)
 	{
 		if (this->_size >= this->_capacity)
 		{
@@ -285,27 +244,19 @@ class vector
 	
 	iterator	insert(iterator position, const value_type& val)
 	{
-		if (this->_size == this->_capacity)
-			reAlloc(this->_capacity + this->_capacity);
-		for (iterator it = end(); it != position; --it)
-			*(it + 1) = *it;
-		*position = val;
-		this->_size++;
-		return position;
+		size_type i = distance(begin(), position);
+		insert(position, 1, val);
+		return iterator(&_data[i]);
 	}
 
 	void		insert(iterator position, size_type n, const value_type& val)
 	{
-		vector tmp;
-	
-		iterator pos_tmp = position;
-		tmp._capacity = distance(position, this->end());
-		tmp._data = new value_type[tmp._capacity];
-		tmp.assign(position, this->end());
-		this->_size = this->distance(this->begin(), pos_tmp);
+		vector tmp2(position, end());
+		
+		_size = distance(begin(), position);
 		for (; n > 0; --n)
 			push_back(val);
-		for (iterator it = tmp.begin(); it != tmp.end(); ++it)
+		for (iterator it = tmp2.begin(); it != tmp2.end(); ++it)
 			push_back(*it);
 	}
 
@@ -327,12 +278,13 @@ class vector
 	
 	iterator	erase(iterator position)
 	{
+		size_type pos = distance(begin(), position);
 		if (this->validate_iterator(position))
 			return this->begin();
 		for (iterator last = this->end(); position != last; ++position)
 			*position = *(position + 1);
 		this->_size--;
-		return position;
+		return iterator(&_data[pos]);
 	}
 	
 	iterator	erase(iterator first, iterator last)
@@ -343,7 +295,7 @@ class vector
 		for (iterator end = this->end(); first != end - n; ++first)
 			*first = *(first + n);
 		this->_size -= n;
-		return first - n;
+		return first - (n + 1);
 	}
 	
 	void		swap(vector& x)
@@ -375,8 +327,8 @@ class vector
 template<class T, class Alloc>
 	bool 		operator==(const vector<T,Alloc>& lhs, const vector<T, Alloc>& rhs)
 	{
-		for (size_t i = 0; lhs.cbegin() + i != lhs.cend(); ++i){
-			if (*(lhs.cbegin() + i) != *(rhs.cbegin() + i))
+		for (size_t i = 0; lhs.begin() + i != lhs.end(); ++i){
+			if (*(lhs.begin() + i) != *(rhs.begin() + i))
 				return false;
 		}
 		return (lhs.size() == rhs.size() && lhs.capacity() == rhs.capacity());
@@ -391,7 +343,7 @@ template<class T, class Alloc>
 template<class T, class Alloc>
 	bool 		operator<(const vector<T,Alloc>& lhs, const vector<T, Alloc>& rhs)
 	{
-		return (std::lexicographical_compare(lhs.cbegin(), lhs.cend(), rhs.cbegin(), rhs.cend()));
+		return (std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end()));
 	}
 
 template<class T, class Alloc>

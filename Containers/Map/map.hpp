@@ -39,11 +39,10 @@ class map{
 	typedef mapNode<value_type>*                                node_pointer;
 	typedef mapNode<value_type>                                 node;
 
-	typedef BiDirectionalIterator<value_type, node, reference, pointer>  					iterator;
-	typedef BiDirectionalIterator<value_type, node, const_reference, const_pointer>			const_iterator;
-	typedef ReverseBiDirectionalIterator<value_type, node, reference, pointer>          	reverse_iterator;
-	typedef ReverseBiDirectionalIterator<value_type, node, const_reference, const_pointer>	const_reverse_iterator;
-
+	typedef BiDirectionalIterator<value_type, node> 			iterator;
+	typedef ConstBiDirectionalIterator<value_type, node> 		const_iterator;
+	typedef ReverseBiDirectionalIterator<value_type, node> 		reverse_iterator;
+	typedef ConstReverseBiDirectionalIterator<value_type, node> const_reverse_iterator;
   private: 
 	node_pointer 	_root;
 	node_pointer 	_first;
@@ -648,7 +647,7 @@ class map{
 		}
 	}
 
-  public: //this should be deleted so print_tree() isn't public
+//   public: //Comment this in to make the print_tree work.
 	void				print_tree()
 	{
 		std::string root_path;

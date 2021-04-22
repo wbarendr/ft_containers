@@ -1,7 +1,7 @@
 #include "catch.hpp"
 
 #include <list>
-#include "list/list.hpp"
+#include "../Containers/List/List.hpp"
 
 TEST_CASE("List - Testing constructor 1")
 {
@@ -33,6 +33,15 @@ TEST_CASE("List - Testing copy constructor")
 
     ft::list<int> vec_cpy(my_vec);
     REQUIRE(vec_cpy.size() == 5);
+}
+
+TEST_CASE("List - operator=")
+{
+    ft::list<int> my_vec(5, 6);
+
+    ft::list<int> vec_other(10, 8);
+    vec_other = my_vec;
+    REQUIRE(vec_other.size() == 5);
 }
 
 TEST_CASE("List - testing empty")
@@ -220,8 +229,8 @@ TEST_CASE("List - splice it twice"){
     // }
 }
 
-bool    odd_num(ft::list<int>::iterator it){
-    if (*it % 2 == 1)
+bool    odd_num(const int& value){
+    if (value % 2 == 1)
         return true;
     return false;
 }
@@ -277,8 +286,8 @@ TEST_CASE("List - Unique")
 
 }
 
-bool        too_close(ft::list<int>::iterator first, ft::list<int>::iterator second){
-    if (*second - *first < 5)
+bool        too_close(const int& first, const int& second){
+    if (second - first < 5)
         return true;
     return false;
 }
@@ -341,7 +350,7 @@ bool        hasMoreA(std::string first, std::string second){
         if (second[i] == 'A')
             count_second++;
     }
-    return count_first < count_second;
+    return count_first > count_second;
 }
 
 TEST_CASE("List - sort and merge func")
@@ -453,7 +462,7 @@ TEST_CASE("List - overload operations")
 
 }
 
-TEST_CASE("List - overload swap")
+TEST_CASE("List -  swap")
 {
     ft::list<int> my_vec;
     ft::list<int> my_vec2;
@@ -479,4 +488,25 @@ TEST_CASE("List - overload swap")
     REQUIRE(my_vec.back() == 42);
     REQUIRE(my_vec2.front() == 33);
     REQUIRE(my_vec2.back() == 33);
+}
+
+TEST_CASE("List -  reverse")
+{
+    ft::list<int> my_vec;
+
+    my_vec.push_back(33);
+    my_vec.push_back(88);
+    my_vec.push_back(92);
+    my_vec.push_back(122);
+
+
+    my_vec.reverse();
+    ft::list<int>::const_iterator it3 = my_vec.begin();
+    REQUIRE(*it3 == 122);
+    it3++;
+    REQUIRE(*it3 == 92);
+    it3++;
+    REQUIRE(*it3 == 88);
+    it3++;
+    REQUIRE(*it3 == 33);
 }

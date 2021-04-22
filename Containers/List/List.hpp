@@ -6,7 +6,7 @@
 /*   By: wester <wester@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2021/04/02 22:06:55 by wester        #+#    #+#                 */
-/*   Updated: 2021/04/14 14:48:56 by wester        ########   odam.nl         */
+/*   Updated: 2021/04/22 11:14:20 by wester        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@
 # include "Node.hpp"
 # include "../../Additionals/BiDirectionalIterator.hpp"
 # include "../../Additionals/Traits.hpp"
+# include <limits>
 
 namespace ft {
 	
@@ -41,10 +42,10 @@ class list
 	typedef node<value_type> 	node;
 	typedef node*				node_pointer;
 	
-	typedef BiDirectionalIterator<value_type, node, reference, pointer> iterator;
-	typedef BiDirectionalIterator<value_type, node, const_reference, const_pointer> const_iterator;
-	typedef ReverseBiDirectionalIterator<value_type, node, reference, pointer> reverse_iterator;
-	typedef ReverseBiDirectionalIterator<value_type, node, const_reference, const_pointer> const_reverse_iterator;
+	typedef BiDirectionalIterator<value_type, node> 			iterator;
+	typedef ConstBiDirectionalIterator<value_type, node> 		const_iterator;
+	typedef ReverseBiDirectionalIterator<value_type, node> 		reverse_iterator;
+	typedef ConstReverseBiDirectionalIterator<value_type, node> const_reverse_iterator;
 
   private:
 	node_pointer		_head;
@@ -104,8 +105,8 @@ class list
 	list&		operator=(const list& other)
 	{
 		clear();
-		_head->_next = _tail;
-        _tail->_prev = _head;
+		_head->next = _tail;
+        _tail->prev = _head;
 		assign(other.begin(), other.end());
 		return *this;
 	};
@@ -121,15 +122,16 @@ class list
 	const_iterator			begin() 	const	{return const_iterator(_head->next);}
 	iterator				end()				{return iterator(_tail);}
 	const_iterator			end() 		const	{return const_iterator(_tail);}
-	reverse_iterator		rbegin()			{return iterator(_tail->prev);}
-	const_reverse_iterator	rbegin()	const	{return const_iterator(_tail->prev);}
-	reverse_iterator		rend()				{return iterator(_head);}
-	const_reverse_iterator	rend()		const	{return const_iterator(_head);}
+	reverse_iterator		rbegin()			{return reverse_iterator(_tail->prev);}
+	const_reverse_iterator	rbegin()	const	{return const_reverse_iterator(_tail->prev);}
+	reverse_iterator		rend()				{return reverse_iterator(_head);}
+	const_reverse_iterator	rend()		const	{return const_reverse_iterator(_head);}
 
 					//CAPACITY
 	bool 					empty()		const	{return !_total;}
 	size_type 				size() 		const	{return _total;}
-	size_type 				max_size() 	const	{return _alloc.max_size();}
+	size_type 				max_size() 	const	{
+		return (std::numeric_limits<size_type>::max() / sizeof(node)); }
 	
 					//ELEMENT ACCESS
 	reference 				front()				{return reference(_head->next->data);}
@@ -142,12 +144,14 @@ class list
     void 		assign(typename enable_if<is_input_iterator<InputIterator>::value,
 						InputIterator>::type first, InputIterator last) 
 	{
+		clear();
 		for (; first != last; ++first)
 			push_back(*first);
 	}
 
 	void		assign(size_type n, const value_type&  val)
 	{
+		clear();
 		for (size_type i = 0; i < n; ++i)
 			push_back(val);
 	}
@@ -316,7 +320,7 @@ class list
 	template <class Predicate>
   	void 		remove_if(Predicate pred){
 		for (iterator it = begin(); it != end(); ++it)
-			if (pred(it))
+			if (pred(*it))
 				erase(it);
 	}
 
@@ -343,7 +347,7 @@ class list
 		iterator second = begin();
 		second++;
 		for (; second != end();){
-			if (binary_pred(first, second)){
+			if (binary_pred(*first, *second)){
 				iterator tmp = second;
 				second++;
 				erase(tmp);
@@ -375,28 +379,15 @@ class list
 		}
 		other._head->next = other._tail;
 		other._tail->prev = other._head;
+		other.clear();
+		sort();
 	}
 
 	template <class Compare>
   	void 			merge(list& other, Compare comp){
-		iterator it_other = other.begin();
-		iterator it = begin();
-		while (it_other != other.end()){
-			while (!comp(it.getNode()->data, it_other.getNode()->data) && it != end())
-				++it;
-			if (it == end() && it_other != other.end()){
-				++it_other;
-				transfer(it, it_other.getNode()->prev);
-				other._total--;
-			}
-			while (comp(it.getNode()->data, it_other.getNode()->data) && it_other != other.end()){
-				++it_other;
-				transfer(it, it_other.getNode()->prev);
-				other._total--;
-			}
-		}
-		other._head->next = other._tail;
-		other._tail->prev = other._head;
+		insert(end(), other.begin(),other.end());
+		other.clear();
+		sort(comp);
 	}
 
 	void			sort(){ // bubble sort?
@@ -415,19 +406,39 @@ class list
 		iterator second = begin();
 		second++;
 		while (second != end()){
-			if (comp(second.getNode()->prev->data, second.getNode()->data))
+			if (comp(second.getNode()->data, second.getNode()->prev->data))
 				second = change(second.getNode()->prev, second.getNode());
 			else
 				++second;
 		}
+	}
+
+	void		reverse()
+	{
+		node_pointer tmp = _head->next;
+		node_pointer tmp2;
+
+		while (tmp != _tail)
+		{
+			tmp2 = tmp->next;
+			tmp->next = tmp->prev;
+			tmp->prev = tmp2;
+			
+			tmp = tmp->prev;
+		}
+		tmp2 = _head->next;
+		_head->next = _tail->prev;
+		_tail->prev->prev = _head;
+		_tail->prev = tmp2;
+		tmp2->next = _tail;
 	}
 };
 	template <class T, class Alloc>
   	bool 		operator==(const list<T,Alloc>& lhs, const list<T,Alloc>& rhs){
 		if (lhs.size() != rhs.size())
 			return false;
-		BiDirectionalIterator<T, node<T>, const T&, const T*> lhs_begin = lhs.begin();
-		BiDirectionalIterator<T, node<T>, const T&, const T*> rhs_begin = rhs.begin();
+		ConstBiDirectionalIterator<T, node<T> > lhs_begin = lhs.begin();
+		ConstBiDirectionalIterator<T, node<T> > rhs_begin = rhs.begin();
 		while (lhs_begin != lhs.end()){
 			if (*lhs_begin != *rhs_begin)
 				return false;
@@ -464,7 +475,7 @@ class list
 	
 	template <class T, class Alloc>
 	void 		swap(list<T,Alloc>& x, list<T,Alloc>& y){
-		BiDirectionalIterator<T, node<T>, T&, T*> xbegin = x.begin();
+		BiDirectionalIterator<T, node<T> > xbegin = x.begin();
 		
 		x.splice(xbegin, y);
 		y.splice(y.begin(), x, xbegin, x.end());
